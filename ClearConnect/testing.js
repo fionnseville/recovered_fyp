@@ -1,5 +1,5 @@
 import { Image, ImageBackground, Dimensions, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import React, { useContext ,useEffect, useState} from 'react';
+import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -18,7 +18,7 @@ import PatientDashboardScreen from './screens/PatientDashboard'
 import ChatScreen from './screens/ChatScreen';
 import RegisterScreen from './screens/registry';
 import SettingsScreen from './screens/SettingsScreen';
-import { Platform,Keyboard  } from 'react-native';
+import { Platform } from 'react-native';
 import PatientViewScreen from './screens/PatientViewScreen'; 
 //import PatientOptions from './screens/PatientOptionsScreen'; 
 
@@ -386,30 +386,16 @@ function CustomTabBar({ state, descriptors, navigation }) {
 //bottom tabs
 export default function Navigation() {
   const { isLoggedIn,user  } = useContext(AuthContext); //retrieves loggedin state
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   return (
     
       <Tab.Navigator
-        //tabBar={(props) => <CustomTabBar {...props} />}
-        tabBar={(props) => !keyboardVisible ? <CustomTabBar {...props} /> : null}
+        tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{
           tabBarStyle: {
-            //keyboardHidesTabBar: true,//should fix bottom tab on android
+            keyboardHidesTabBar: true,//should fix bottom tab on android
             backgroundColor: 'transparent',
             height: height * 0.1,
-            //position: 'absolute',
-            overflow: 'hidden',
           },
           tabBarActiveTintColor: '#f5f5dc',
           tabBarInactiveTintColor: '#a9a9a9',
