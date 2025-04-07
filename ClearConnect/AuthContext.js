@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     
           const expiresAt = sessionData.expiresAt;
     
-          // 🔐 Check expiration (server-based expiry time)
+          
           if (expiresAt && Date.now() > expiresAt) {
             console.log('[Session] Session expired');
             await AsyncStorage.removeItem('userSession');
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
             return;
           }
     
-          // ✅ Session is valid
+          
           setUser(parsed);
           setIsLoggedIn(true);
           console.log('[Session] Restored and valid:', parsed);
@@ -105,19 +105,16 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // 🧨 Delete session from Firestore if it exists
       if (user?.sessionId) {
         const sessionRef = doc(db, 'sessions', user.sessionId);
         await deleteDoc(sessionRef);
         console.log('[Auth] Session document deleted from Firestore');
       }
 
-      // 🧹 Clear local session
       setUser(null);
       setIsLoggedIn(false);
       await AsyncStorage.removeItem('userSession');
 
-      // 🚀 Redirect to login/home
       if (navigationRef.isReady()) {
         navigationRef.reset({
           index: 0,

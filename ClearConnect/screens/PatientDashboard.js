@@ -6,13 +6,15 @@ import { AuthContext } from '../AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSessionValidation } from '../Utils/useSessionValidation';
 
-export default function PatientDashboardScreen() {
+export default function PatientDashboardScreen({ initialLinkedDoctors = [] ,initialAppointments= []}) {
   const { user } = useContext(AuthContext);
-  const [linkedDoctors, setLinkedDoctors] = useState([]);
-  const [appointments, setAppointments] = useState([]);
+  const [linkedDoctors, setLinkedDoctors] = useState(initialLinkedDoctors);
+  const [appointments, setAppointments] = useState(initialAppointments);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState(''); 
   const [modalVisible, setModalVisible] = useState(false);
+  console.log(initialAppointments)
+  //console.log(initialLinkedDoctors)
 
 
   const { valid, validating, revalidate } = useSessionValidation();
@@ -70,7 +72,9 @@ export default function PatientDashboardScreen() {
           where('patientid', '==', user.id)
         );
         const appointmentsSnap = await getDocs(appointmentsQuery);
+        console.log(appointmentsSnap)
 
+        console.log(user.id)
         let appointmentsData = appointmentsSnap.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
@@ -103,7 +107,7 @@ export default function PatientDashboardScreen() {
           const [dayB, monthB, yearB] = b.date.split('/');
           return new Date(`${yearA}-${monthA}-${dayA}`) - new Date(`${yearB}-${monthB}-${dayB}`);
         });
-
+        console.log(appointmentsData)
         setAppointments(appointmentsData);
 
         setLoading(false);
@@ -134,6 +138,7 @@ export default function PatientDashboardScreen() {
   }    
 
   const handleSearchAndLink = async () => {
+    //console.log('test')
     if (!email.trim()) {
       Alert.alert('Error', 'Please enter a valid email.');
       return;
@@ -147,30 +152,42 @@ export default function PatientDashboardScreen() {
         where('role', '==', 1)
       );
       const querySnapshot = await getDocs(doctorQuery);
-
+      //console.log('query result:', querySnapshot); 
       if (!querySnapshot.empty) {
         const doctorDoc = querySnapshot.docs[0];
         const doctorData = doctorDoc.data();
 
-        const alreadyLinked = linkedDoctors.some((d) => d.id === doctorDoc.id);
+
+        
+        //console.log('',linkedDoctors.some((d) => d.id === doctorDoc.id))
+        const alreadyLinked = linkedDoctors.some((d) => d.id === doctorDoc.id );
+        //const alreadyLinked = doctorDoc.id === 'doc456';
+
+
+        //console.log(doctorDoc.id)
+        //console.log('other id: ',alreadyLinked)
+        //console.log('testing data: ', doctorDoc)
         if (alreadyLinked) {
+          //console.log('already linked: ', doctorDoc)
           Alert.alert(
             'Already Linked',
-            `You are already linked to Dr. ${doctorData.firstname} ${doctorData.surname}.`
+            `You are already linked to Dr. ${doctorData.firstname} ${doctorData.surname}.` //
           );
           return;
         }
 
         // append to the user's doctorIds array
+        //console.log('preupdate doc')
         await updateDoc(doc(db, 'users', user.id), {
           doctorIds: [...(linkedDoctors.map((d) => d.id) || []), doctorDoc.id],
         });
-
+        //console.log('post update doc')
         Alert.alert(
           'Success',
           `You have successfully linked to Dr. ${doctorData.firstname.trim()} ${doctorData.surname.trim()}.`
         );
 
+        //`You have successfully linked to Dr. ${doctorData.firstname.trim()} ${doctorData.surname.trim()}.`
         // refresh linked doctors to include newly added doctor
         setLinkedDoctors((prev) => [
           ...prev,
@@ -182,6 +199,7 @@ export default function PatientDashboardScreen() {
           },
         ]);
       } else {
+        //console.log('invalid testing')
         Alert.alert('Error', 'No doctor found with this email.');
       }
     } catch (error) {
@@ -197,10 +215,11 @@ export default function PatientDashboardScreen() {
       </SafeAreaView>
     );
   }
-
+  console.log('test2',appointments)
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
+        style={{ flex: 1 }} 
         data={appointments}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
@@ -216,6 +235,7 @@ export default function PatientDashboardScreen() {
 
             <View style={styles.detailsContainer}>
               <Text style={styles.detailsHeader}>Linked Doctors:</Text>
+              
               {linkedDoctors.length > 0 ? (
                 linkedDoctors.map((doctor) => (
                   <View key={doctor.id} style={styles.linkedDoctorItem}>

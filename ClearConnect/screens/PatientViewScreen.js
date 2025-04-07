@@ -32,7 +32,7 @@ export default function PatientViewScreen() {
   );  
 
 
-  const fetchFiles = async () => {
+  /*const fetchFiles = async () => {
     setfileLoading(true);
     try {
       const filesQuery = query(
@@ -47,6 +47,30 @@ export default function PatientViewScreen() {
       setFiles(filesList);
     } catch (error) {
       console.error('Error fetching files:', error);
+    }
+    setfileLoading(false);
+  };*/
+
+  const fetchFiles = async () => {
+    setfileLoading(true);
+    try {
+      const response = await fetch('https://us-central1-healthguard-b70e1.cloudfunctions.net/getPatientFiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientId }),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok || !result.success) {
+        Alert.alert('Error', result.error || 'Failed to fetch files');
+        setFiles([]);
+      } else {
+        setFiles(result.files || []);
+      }
+    } catch (error) {
+      console.error('Error fetching files:', error);
+      Alert.alert('Error', 'Failed to fetch files.');
     }
     setfileLoading(false);
   };
@@ -186,9 +210,15 @@ export default function PatientViewScreen() {
                 <Image
                   source={require('../assets/pdf-icon.png')}
                   style={styles.thumbnail}
+                  testID={`thumbnail-pdf-${item.id}`}
+                  
                 />
               ) : (
-                <Image source={{ uri: item.fileUrl }} style={styles.thumbnail} />
+                <Image 
+                  source={{ uri: item.fileUrl }} 
+                  style={styles.thumbnail} 
+                  testID={`thumbnail-img-${item.id}`}
+                />
               )}
             </TouchableOpacity>
           )}

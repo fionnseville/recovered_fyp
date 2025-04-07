@@ -65,7 +65,7 @@ export default function ChatScreen({ route }) {
     return unsubscribe;
   }, [currentUserId, chatId]);
   
-  const sendMessage = async () => {
+  /*const sendMessage = async () => {
     if (input.trim()) {
       try {
         await addDoc(collection(db, 'messages'), {
@@ -85,7 +85,30 @@ export default function ChatScreen({ route }) {
     }
 
     
+  };*/
+  const sendMessage = async () => {
+    if (input.trim()) {
+      try {
+        await fetch('https://us-central1-healthguard-b70e1.cloudfunctions.net/sendMessage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            senderId: currentUserId,
+            receiverId: chatId,
+            messageText: input,
+          }),
+        });
+  
+        setInput('');
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
+    }
   };
+  
 
   if (validating) {
     return (

@@ -13,7 +13,7 @@ export default function Doctor_login() {
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
 
-  const handleLogin = async () => {
+  /*const handleLogin = async () => {
     if (email && password) {
       try {
         const trimmedEmail = email.trim().toLowerCase();
@@ -73,7 +73,63 @@ export default function Doctor_login() {
     } else {
       Alert.alert('Error', 'Please enter both email and password.');
     }
+  };*/
+  const handleLogin = async () => {
+    if (email && password) {
+      try {
+        const trimmedEmail = email.trim().toLowerCase();
+        const hashedPassword = sha256(password);
+  
+        const session = await createSession(doc.id); 
+        //below is for unit testing
+        //const session = await createSession('');//doesnt matter session will be attached to the credential user
+  
+        const response = await fetch('https://us-central1-healthguard-b70e1.cloudfunctions.net/doctorLogin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: trimmedEmail,
+            password: hashedPassword,
+            sessionId: session.sessionId,
+            token: session.token,
+          }),
+        });
+  
+        const result = await response.json();
+  
+        if (!response.ok || !result.success) {
+          Alert.alert('Login Failed', result.error || 'Invalid credentials');
+          return;
+        }
+  
+        const sessionData = {
+          id: result.user.id,
+          email: result.user.email,
+          firstname: result.user.firstname,
+          surname: result.user.surname,
+          specialization: result.user.specialization,
+          role: result.user.role,
+          sessionId: session.sessionId,
+          token: session.token,
+        };
+  
+        login(sessionData);
+  
+        Alert.alert('Login Successful', `Welcome Dr. ${result.user.firstname}!`);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Dashboard' }],
+        });
+  
+      } catch (error) {
+        console.error('Login error:', error);
+        Alert.alert('Error', 'Something went wrong.');
+      }
+    } else {
+      Alert.alert('Error', 'Please enter both email and password.');
+    }
   };
+  
 
   return (
     <View style={styles.container}>
